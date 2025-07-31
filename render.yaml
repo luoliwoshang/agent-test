@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: webhook-server
+    env: go
+    plan: free
+    buildCommand: go build -o main webhook-demo/server.go
+    startCommand: ./main
+    healthCheckPath: /health
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: WEBHOOK_SECRET
+        generateValue: true
+        description: "GitHub webhook secret for signature verification"
+    # 自动从 GitHub 仓库部署
+    autoDeploy: true
+    # 设置资源限制
+    disk:
+      name: webhook-data
+      sizeGB: 1
+      mountPath: /data

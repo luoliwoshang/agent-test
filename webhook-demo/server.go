@@ -159,10 +159,24 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// 获取端口配置，支持 Render 和本地开发
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // 本地开发默认端口
+	}
+
 	log.Println("🚀 启动 Webhook 演示服务器...")
-	log.Println("📡 监听端口: 8080")
-	log.Println("🔗 Webhook URL: http://localhost:8080/webhook")
-	log.Println("🏥 健康检查: http://localhost:8080/health")
+	log.Printf("📡 监听端口: %s", port)
+	
+	// 根据环境显示不同的 URL
+	if os.Getenv("RENDER") != "" {
+		log.Println("🌐 运行环境: Render Cloud")
+		log.Println("🔗 Webhook URL: https://your-app.onrender.com/webhook")
+		log.Println("🏥 健康检查: https://your-app.onrender.com/health")
+	} else {
+		log.Printf("🔗 Webhook URL: http://localhost:%s/webhook", port)
+		log.Printf("🏥 健康检查: http://localhost:%s/health", port)
+	}
 	
 	// 检查是否设置了 WEBHOOK_SECRET
 	secret := os.Getenv("WEBHOOK_SECRET")
@@ -179,5 +193,6 @@ func main() {
 	http.HandleFunc("/webhook", webhookHandler)
 	http.HandleFunc("/health", healthHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Printf("🎯 服务器启动成功，监听端口 %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
