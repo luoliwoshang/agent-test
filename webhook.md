@@ -220,20 +220,135 @@ ssh -R 80:localhost:8080 serveo.net
 - 点击任意一个请求旁边的 "Redeliver"
 - 可以重新发送该请求用于调试
 
+## 🔐 第八步：添加 Webhook Secret 安全验证
+
+**为什么需要 Secret 验证？**
+- 确保请求真的来自 GitHub，而不是恶意攻击者
+- 防止他人伪造 webhook 请求
+- 这是生产环境的必备安全措施
+
+### 1. 生成 Secret
+
+**生成一个强密码作为 Secret：**
+```bash
+# 使用 openssl 生成随机字符串
+openssl rand -hex 20
+
+# 或者使用 Python
+python3 -c "import secrets; print(secrets.token_hex(20))"
+
+# 示例输出: a1b2c3d4e5f6789012345678901234567890abcd
+```
+
+**记住这个 Secret，我们需要在两个地方使用它。**
+
+### 2. 设置环境变量
+
+**在启动服务器前设置环境变量：**
+```bash
+# 设置你的 secret（替换成你生成的值）
+export WEBHOOK_SECRET=a1b2c3d4e5f6789012345678901234567890abcd
+
+# 启动服务器
+cd webhook-demo
+go run server.go
+```
+
+**现在服务器会显示：**
+```
+🚀 启动 Webhook 演示服务器...
+📡 监听端口: 8080
+🔗 Webhook URL: http://localhost:8080/webhook
+🏥 健康检查: http://localhost:8080/health
+🔐 已启用 Webhook 签名验证
+```
+
+### 3. 更新 GitHub Webhook 配置
+
+**回到 GitHub webhook 配置页面：**
+1. 进入：`https://github.com/你的用户名/你的仓库名/settings/hooks`
+2. 点击你之前创建的 webhook
+3. 点击 **"Edit"**
+4. 在 **"Secret"** 字段填入你生成的 secret
+5. 点击 **"Update webhook"**
+
+### 4. 验证 Secret 功能
+
+**测试没有 Secret 的情况：**
+```bash
+# 先停止服务器，然后不设置环境变量直接启动
+go run server.go
+```
+
+服务器会显示警告：
+```
+⚠️  警告: 未设置 WEBHOOK_SECRET 环境变量
+   建议设置: export WEBHOOK_SECRET=your-secret-key
+   这样可以启用签名验证以确保安全性
+```
+
+**测试错误的 Secret：**
+```bash
+# 设置错误的 secret
+export WEBHOOK_SECRET=wrong-secret
+go run server.go
+```
+
+触发一个 webhook 事件，服务器日志会显示：
+```
+❌ Webhook 签名验证失败，拒绝请求
+❌ 签名验证失败
+期望: abc123...
+实际: def456...
+```
+
+**测试正确的 Secret：**
+```bash
+# 设置正确的 secret
+export WEBHOOK_SECRET=a1b2c3d4e5f6789012345678901234567890abcd
+go run server.go
+```
+
+触发事件后，服务器日志会显示：
+```
+✅ 签名验证成功
+🏓 收到 ping 事件 - webhook 配置成功！
+```
+
+### 5. Secret 验证原理说明
+
+**GitHub 如何生成签名：**
+1. 使用你设置的 Secret 作为密钥
+2. 对请求体内容计算 HMAC-SHA256 哈希
+3. 在请求头中发送：`X-Hub-Signature-256: sha256=计算的哈希值`
+
+**服务器如何验证：**
+1. 获取请求头中的签名
+2. 使用相同的 Secret 对请求体计算 HMAC-SHA256
+3. 比较两个哈希值是否相同
+4. 相同则验证通过，不同则拒绝请求
+
+**安全注意事项：**
+- Secret 要足够长和随机（至少 20 字符）
+- 不要在代码中硬编码 Secret
+- 定期更换 Secret
+- 使用环境变量或安全的配置管理系统
+
 ## 🎉 完成！
 
-现在你已经成功搭建了一个完整的 webhook 接收系统：
+现在你已经成功搭建了一个完整且安全的 webhook 接收系统：
 
 ✅ 本地服务器运行  
 ✅ 内网穿透配置  
 ✅ GitHub webhook 配置  
 ✅ 事件接收和处理  
 ✅ 调试和测试  
+✅ **安全验证（Webhook Secret）**
 
 **下一步可以做什么？**
 - 添加更复杂的事件处理逻辑
-- 实现安全验证（Webhook Secret）
 - 集成 AI 服务进行代码生成
 - 自动创建 PR 和提交代码
+- 添加数据库存储 webhook 事件
 
-这就是一个完整的 webhook 教学流程！
+这就是一个完整且安全的 webhook 教学流程！
