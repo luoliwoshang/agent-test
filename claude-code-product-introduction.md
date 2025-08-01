@@ -48,4 +48,27 @@ Claude Code 是 Anthropic 推出的革命性AI编程助手，将 Claude Opus 4 �
 - 文档生成和维护
 - 知识传承和新人培训
 
+## 定价信息
+
+### 计费模式
+Claude Code 采用基于使用量的透明计费模式：
+- **按API调用计费**：仅对实际的模型API调用收费
+- **无订阅费用**：无需支付月费或年费
+- **灵活使用**：根据项目需求灵活调整使用量
+
+### 价格结构
+- **Claude 3.5 Sonnet**：$3/1M输入tokens，$15/1M输出tokens
+- **Claude 3.5 Haiku**：$0.25/1M输入tokens，$1.25/1M输出tokens
+- **Claude 3 Opus**：$15/1M输入tokens，$75/1M输出tokens
+
+### 多云部署选项
+- **Anthropic API**：直接使用官方API，享受最新功能更新
+- **AWS Bedrock**：企业级部署，与AWS生态深度集成
+- **Google Cloud Vertex AI**：谷歌云原生部署，符合企业合规要求
+
+### 成本优化建议
+- 根据任务复杂度选择合适的模型版本
+- 利用缓存机制减少重复API调用
+- 通过精确的上下文管理控制token使用量
+
 Claude Code 以其强大的AI能力和无缝的工具集成，为现代软件开发团队提供了前所未有的开发效率提升，是AI时代开发者的必备工具。
