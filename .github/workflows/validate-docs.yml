@@ -42,7 +42,7 @@ jobs:
           
       - name: 上传验证报告
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: link-validation-report
           path: |
