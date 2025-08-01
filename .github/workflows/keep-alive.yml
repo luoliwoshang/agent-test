@@ -1,0 +1,62 @@
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    # 每5分钟运行一次 (GitHub Actions 最小间隔)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  ping-service:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Render Service
+        run: |
+          echo "🏃‍♂️ 开始 ping Render 服务..."
+          echo "🕐 当前时间: $(date)"
+          
+          # ping 健康检查端点
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://agent-test-n6lr.onrender.com/health || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ 服务正常运行 (HTTP $response)"
+          elif [ "$response" = "000" ]; then
+            echo "⚠️  网络连接失败，正在重试..."
+            sleep 10
+            response=$(curl -s -o /dev/null -w "%{http_code}" https://agent-test-n6lr.onrender.com/health || echo "000")
+            if [ "$response" = "200" ]; then
+              echo "✅ 重试成功，服务已唤醒 (HTTP $response)"
+            else
+              echo "❌ 服务无响应 (HTTP $response)"
+              exit 1
+            fi
+          else
+            echo "⚠️  服务返回非 200 状态码: HTTP $response"
+            echo "可能是服务正在启动中..."
+          fi
+          
+          echo "🎯 Keep-alive 任务完成"
+
+      - name: Test Webhook Endpoint
+        run: |
+          echo "🔗 测试 webhook 端点可达性..."
+          
+          # 测试 webhook 端点 (应该返回 405 Method Not Allowed，因为我们用 GET 而不是 POST)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://agent-test-n6lr.onrender.com/webhook || echo "000")
+          
+          if [ "$response" = "405" ]; then
+            echo "✅ Webhook 端点正常 (HTTP $response - Method Not Allowed 符合预期)"
+          elif [ "$response" = "200" ]; then
+            echo "✅ Webhook 端点可达 (HTTP $response)"
+          else
+            echo "⚠️  Webhook 端点状态: HTTP $response"
+          fi
+
+      - name: Log Service Status
+        run: |
+          echo "📊 服务状态报告:"
+          echo "• 时间: $(date)"
+          echo "• 健康检查: https://agent-test-n6lr.onrender.com/health"
+          echo "• Webhook 端点: https://agent-test-n6lr.onrender.com/webhook"
+          echo "• 下次检查: 15 分钟后"
