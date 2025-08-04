@@ -51,6 +51,32 @@
    curl http://localhost:8080/health
    ```
 
+### 使用主机配置测试
+
+项目支持读取主机配置进行测试：
+
+1. **使用主机环境变量**
+   ```bash
+   # 服务器会自动读取主机的环境变量配置
+   # 包括 PORT、WEBHOOK_SECRET、RENDER 等
+   cd webhook-demo
+   go run server.go
+   ```
+
+2. **主机配置检测**
+   - 自动检测 `PORT` 环境变量（默认 8080）
+   - 自动检测 `WEBHOOK_SECRET` 进行签名验证
+   - 自动检测 `RENDER` 环境标识切换运行模式
+   - 显示对应环境的访问 URL 和配置信息
+
+3. **配置验证测试**
+   ```bash
+   # 测试不同配置场景
+   PORT=3000 go run server.go                    # 自定义端口
+   WEBHOOK_SECRET=test123 go run server.go       # 启用签名验证
+   RENDER=true go run server.go                  # 模拟云环境
+   ```
+
 ### 配置 Webhook Secret（推荐）
 
 1. **生成密钥**
