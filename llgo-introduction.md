@@ -1,3 +1,5 @@
+**LLGo is an innovative LLVM-based Go compiler that enables seamless integration between Go and C/C++, Python, JavaScript ecosystems.**
+
 # LLGo - 基于 LLVM 的 Go 编译器
 
 ## 🚀 项目简介
